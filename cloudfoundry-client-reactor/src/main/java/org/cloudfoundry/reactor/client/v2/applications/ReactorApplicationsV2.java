@@ -205,10 +205,10 @@ public final class ReactorApplicationsV2 extends AbstractClientV2Operations impl
     public Mono<UploadApplicationResponse> upload(UploadApplicationRequest request) {
         return put(request, UploadApplicationResponse.class, builder -> builder.pathSegment("v2", "apps", request.getApplicationId(), "bits"),
             outbound -> outbound
-                .then(r -> {
+                .flatMap(r -> {
                     if (Files.isDirectory(request.getApplication())) {
                         return FileUtils.compress(request.getApplication())
-                            .then(application -> upload(application, r, request)
+                            .flatMap(application -> upload(application, r, request)
                                 .doOnTerminate((v, t) -> {
                                     try {
                                         Files.delete(application);

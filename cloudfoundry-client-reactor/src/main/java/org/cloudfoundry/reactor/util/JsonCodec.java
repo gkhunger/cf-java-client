@@ -50,7 +50,7 @@ public final class JsonCodec {
     static Function<Mono<HttpClientRequest>, Publisher<Void>> encode(ObjectMapper objectMapper, Object requestPayload) {
         if (!objectMapper.canSerialize(requestPayload.getClass())) {
             return outbound -> outbound
-                .then(HttpClientRequest::send);
+                .flatMap(HttpClientRequest::send);
         }
 
         return outbound -> outbound

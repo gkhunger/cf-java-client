@@ -58,7 +58,7 @@ public final class PrivateDomainsTest extends AbstractIntegrationTest {
         String privateDomainName = this.nameFactory.getDomainName();
 
         this.organizationId
-            .then(organizationId -> Mono.when(
+            .flatMap(organizationId -> Mono.when(
                 requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName),
                 Mono.just(organizationId)
             ))
@@ -73,11 +73,11 @@ public final class PrivateDomainsTest extends AbstractIntegrationTest {
         String privateDomainName = this.nameFactory.getDomainName();
 
         this.organizationId
-            .then(organizationId -> requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName))
-            .then(privateDomainResource -> requestDeletePrivateDomain(this.cloudFoundryClient, ResourceUtils.getId(privateDomainResource))
-                .then(jobResource -> JobUtils.waitForCompletion(this.cloudFoundryClient, Duration.ofMinutes(5), jobResource))
+            .flatMap(organizationId -> requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName))
+            .flatMap(privateDomainResource -> requestDeletePrivateDomain(this.cloudFoundryClient, ResourceUtils.getId(privateDomainResource))
+                .flatMap(jobResource -> JobUtils.waitForCompletion(this.cloudFoundryClient, Duration.ofMinutes(5), jobResource))
                 .then(Mono.just(privateDomainResource)))
-            .then(privateDomainResource -> requestGetPrivateDomain(this.cloudFoundryClient, ResourceUtils.getId(privateDomainResource)))
+            .flatMap(privateDomainResource -> requestGetPrivateDomain(this.cloudFoundryClient, ResourceUtils.getId(privateDomainResource)))
             .as(StepVerifier::create)
             .consumeErrorWith(t -> assertThat(t).isInstanceOf(ClientV2Exception.class).hasMessageMatching("CF-DomainNotFound\\([0-9]+\\): The domain could not be found: .*"))
             .verify(Duration.ofMinutes(5));
@@ -88,11 +88,11 @@ public final class PrivateDomainsTest extends AbstractIntegrationTest {
         String privateDomainName = this.nameFactory.getDomainName();
 
         this.organizationId
-            .then(organizationId -> Mono.when(
+            .flatMap(organizationId -> Mono.when(
                 Mono.just(organizationId),
                 requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName)
             ))
-            .then(function((organizationId, privateDomainResource) -> Mono.when(
+            .flatMap(function((organizationId, privateDomainResource) -> Mono.when(
                 requestGetPrivateDomain(this.cloudFoundryClient, ResourceUtils.getId(privateDomainResource)),
                 Mono.just(organizationId)
             )))
@@ -107,11 +107,11 @@ public final class PrivateDomainsTest extends AbstractIntegrationTest {
         String privateDomainName = this.nameFactory.getDomainName();
 
         this.organizationId
-            .then(organizationId -> Mono.when(
+            .flatMap(organizationId -> Mono.when(
                 Mono.just(organizationId),
                 requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName)
             ))
-            .then(function((organizationId, privateDomainResource) -> Mono.when(
+            .flatMap(function((organizationId, privateDomainResource) -> Mono.when(
                 listPrivateDomains(this.cloudFoundryClient)
                     .filter(resource -> ResourceUtils.getId(privateDomainResource).equals(ResourceUtils.getId(resource)))
                     .single(),
@@ -128,11 +128,11 @@ public final class PrivateDomainsTest extends AbstractIntegrationTest {
         String privateDomainName = this.nameFactory.getDomainName();
 
         this.organizationId
-            .then(organizationId -> Mono.when(
+            .flatMap(organizationId -> Mono.when(
                 Mono.just(organizationId),
                 requestCreatePrivateDomain(this.cloudFoundryClient, organizationId, privateDomainName)
             ))
-            .then(function((organizationId, privateDomainResource) -> Mono.when(
+            .flatMap(function((organizationId, privateDomainResource) -> Mono.when(
                 listPrivateDomains(this.cloudFoundryClient, privateDomainName)
                     .filter(resource -> ResourceUtils.getId(privateDomainResource).equals(ResourceUtils.getId(resource)))
                     .single(),

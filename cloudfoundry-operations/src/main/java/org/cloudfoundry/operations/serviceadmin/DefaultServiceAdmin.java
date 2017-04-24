@@ -48,7 +48,7 @@ public final class DefaultServiceAdmin implements ServiceAdmin {
     public Mono<Void> create(CreateServiceBrokerRequest request) {
         return Mono
             .when(this.cloudFoundryClient, this.spaceId)
-            .then(function((cloudFoundryClient, spaceId) -> requestCreateServiceBroker(cloudFoundryClient, request.getName(), request.getUrl(), request.getUsername(), request.getPassword(),
+            .flatMap(function((cloudFoundryClient, spaceId) -> requestCreateServiceBroker(cloudFoundryClient, request.getName(), request.getUrl(), request.getUsername(), request.getPassword(),
                 request.getSpaceScoped(), spaceId)))
             .then()
             .transform(OperationsLogging.log("Create Service Broker"))
@@ -58,11 +58,11 @@ public final class DefaultServiceAdmin implements ServiceAdmin {
     @Override
     public Mono<Void> delete(DeleteServiceBrokerRequest request) {
         return this.cloudFoundryClient
-            .then(cloudFoundryClient -> Mono.when(
+            .flatMap(cloudFoundryClient -> Mono.when(
                 Mono.just(cloudFoundryClient),
                 getServiceBrokerId(cloudFoundryClient, request.getName())
             ))
-            .then(function(DefaultServiceAdmin::requestDeleteServiceBroker))
+            .flatMap(function(DefaultServiceAdmin::requestDeleteServiceBroker))
             .transform(OperationsLogging.log("Delete Service Broker"))
             .checkpoint();
     }

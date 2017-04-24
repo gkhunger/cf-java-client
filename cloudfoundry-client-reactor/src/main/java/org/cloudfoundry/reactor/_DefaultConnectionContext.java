@@ -186,7 +186,7 @@ abstract class _DefaultConnectionContext implements ConnectionContext {
     Mono<Map<String, String>> getInfo() {
         return getRoot()
             .map(uri -> UriComponentsBuilder.fromUriString(uri).pathSegment("v2", "info").build().encode().toUriString())
-            .then(uri -> getHttpClient()
+            .flatMap(uri -> getHttpClient()
                 .get(uri, request -> Mono.just(request)
                     .map(UserAgent::addUserAgent)
                     .flatMapMany(HttpClientRequest::send))

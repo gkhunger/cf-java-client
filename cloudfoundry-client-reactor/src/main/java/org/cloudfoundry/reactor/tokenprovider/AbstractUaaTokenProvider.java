@@ -218,7 +218,7 @@ public abstract class AbstractUaaTokenProvider implements TokenProvider {
 
     private Function<Mono<HttpClientRequest>, Mono<Void>> refreshTokenGrantTokenRequestTransformer(String refreshToken) {
         return outbound -> outbound
-            .then(request -> request
+            .flatMap(request -> request
                 .sendForm(form -> form
                     .multipart(false)
                     .attr("client_id", getClientId())
@@ -232,7 +232,7 @@ public abstract class AbstractUaaTokenProvider implements TokenProvider {
         return connectionContext
             .getRoot(AUTHORIZATION_ENDPOINT)
             .map(AbstractUaaTokenProvider::getTokenUri)
-            .then(uri -> connectionContext.getHttpClient()
+            .flatMap(uri -> connectionContext.getHttpClient()
                 .post(uri, request -> Mono.just(request)
                     .map(AbstractUaaTokenProvider::disableChunkedTransfer)
                     .map(AbstractUaaTokenProvider::disableFailOnError)
@@ -247,7 +247,7 @@ public abstract class AbstractUaaTokenProvider implements TokenProvider {
 
     private Mono<String> token(ConnectionContext connectionContext) {
         return this.refreshTokens.getOrDefault(connectionContext, Mono.empty())
-            .then(refreshToken -> refreshToken(connectionContext, refreshToken)
+            .flatMap(refreshToken -> refreshToken(connectionContext, refreshToken)
                 .doOnSubscribe(s -> LOGGER.debug("Negotiating using refresh token")))
             .switchIfEmpty(primaryToken(connectionContext)
                 .doOnSubscribe(s -> LOGGER.debug("Negotiating using token provider")))
